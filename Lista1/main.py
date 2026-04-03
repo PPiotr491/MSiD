@@ -5,11 +5,11 @@ import matplotlib.pyplot as plt
 from kagglehub import KaggleDatasetAdapter
 
 # # Download latest version
-# path = kagglehub.dataset_download("sehaj1104/student-mental-health-and-burnout-dataset", output_dir="C:/Users/Super/PycharmProjects/MSiD/resources")
+# path = kagglehub.dataset_download("mohankrishnathalla/sleep-health-and-daily-performance-dataset", output_dir="C:/Users/Super/PycharmProjects/MSiD/resources/")
 #
 # print("Path to dataset files:", path)
-
-file_path = "C:/Users/Super/PycharmProjects/MSiD/resources/student_mental_health_burnout.csv"
+#
+# file_path = "C:/Users/Super/PycharmProjects/MSiD/resources/student_mental_health_burnout.csv"
 
 # df = kagglehub.dataset_load(KaggleDatasetAdapter.PANDAS,
 #                             "sehaj1104/student-mental-health-and-burnout-dataset",
