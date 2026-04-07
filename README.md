@@ -31,4 +31,4 @@ Główne zmienne docelowe analizowane w projekcie to:
    git clone https://github.com/PPiotr491/MSiD.git.
 2. Zainstaluj wymagane biblioteki:
    ```bash
-   pip install -r requirements.txt
+- `resources/encoding_mappings.json`
