@@ -22,22 +22,17 @@ class RegularizedGD(BaseEstimator):
 
         w = np.zeros(n_features + 1)
 
-        # Dodaj bias do X
         X_with_bias = np.column_stack([np.ones(n_samples), X])
 
         use_reg = self.penalty in {"l1", "l2"} and self.alpha != 0.0
 
         for epoch in range(self.epochs):
-            # Predykcja
             y_pred = X_with_bias @ w
 
-            # Błąd
             error = y_pred - y
 
-            # Gradient MSE
             gradient = (2.0 / n_samples) * (X_with_bias.T @ error)
 
-            # Regularizacja bez biasu (w[0])
             if use_reg:
                 reg = np.zeros_like(w)
                 if self.penalty == "l1":
@@ -46,10 +41,8 @@ class RegularizedGD(BaseEstimator):
                     reg[1:] = 2 * w[1:]
                 gradient += self.alpha * reg
 
-            # Aktualizacja wag
             w = w - self.learning_rate * gradient
 
-            # Śledź MSE lub pełną funkcję celu
             loss = mse(y, y_pred)
             if use_reg:
                 if self.penalty == "l1":

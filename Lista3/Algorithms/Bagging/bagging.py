@@ -31,7 +31,6 @@ class BaggingClassifier:
                 indices = np.random.choice(n_samples, size=n_samples, replace=True)
                 X_sample = X.iloc[indices] if hasattr(X, 'iloc') else X[indices]
                 y_sample = y.iloc[indices] if hasattr(y, 'iloc') else y[indices]
-                # y_sample = y[indices] if isinstance(y, np.ndarray) else y.iloc[indices]
             else:
                 X_sample, y_sample = X, y
 
@@ -54,14 +53,11 @@ class BaggingClassifier:
         n_samples = X.shape[0]
         predictions = np.zeros((n_samples, self.n_estimators), dtype=int)
 
-        # Zbierz predykcje ze wszystkich drzew
         for i, tree in enumerate(self.estimators_):
             predictions[:, i] = tree.predict(X)
 
-        # Hard voting: wyznacz mode (najczęstszą klasę)
         y_pred = np.zeros(n_samples, dtype=int)
         for i in range(n_samples):
-            # Режим (najczęstsza klasa)
             y_pred[i] = np.bincount(predictions[i]).argmax()
 
         return y_pred
@@ -74,12 +70,10 @@ class BaggingClassifier:
         n_classes = len(self.classes_)
         probas = np.zeros((n_samples, n_classes))
 
-        # Zbierz prawdopodobieństwa ze wszystkich drzew
         for tree in self.estimators_:
             tree_proba = tree.predict_proba(X)
             probas += tree_proba
 
-        # Uśrednij (soft voting)
         probas /= self.n_estimators
 
         return probas

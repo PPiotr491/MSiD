@@ -31,17 +31,6 @@ def fit_penalty_path(X, y, alphas, penalty, learning_rate=0.01, epochs=2000):
 
         reg = RegularizedGD(learning_rate=learning_rate, alpha=alpha, epochs=alpha_epochs, penalty=penalty)
         reg.fit(X, y)
-
-        # w, history = fit_regularized_gd_correct(
-        #     X,
-        #     y,
-        #     learning_rate=learning_rate,
-        #     alpha=alpha,
-        #     epochs=alpha_epochs,
-        #     penalty=penalty,
-        #     include_reg_in_loss=False,
-        # )
-
         weights[i] = reg.w
 
     return np.array(alphas, dtype=float), weights
@@ -65,7 +54,6 @@ def plot_weight_paths(alphas, weights, feature_names=None, max_features=10, incl
     n_features = coef.shape[1]
     names = _ensure_feature_names(n_features, feature_names)
 
-    # Pick features with largest max |w| across the path for a clearer plot
     max_abs = np.max(np.abs(coef), axis=0)
     top_idx = np.argsort(max_abs)[:max_features]
 
@@ -94,10 +82,6 @@ def compare_lasso_ridge(X, y, alphas, learning_rate=0.01, epochs=2000, zero_tol=
     lasso_stats = build_stats_table(l1_alphas, l1_weights, penalty="l1", zero_tol=zero_tol)
     ridge_stats = build_stats_table(l2_alphas, l2_weights, penalty="l2", zero_tol=zero_tol)
 
-    # results = {
-    #     "lasso": {"alphas": l1_alphas, "weights": l1_weights, "stats": lasso_stats},
-    #     "ridge": {"alphas": l2_alphas, "weights": l2_weights, "stats": ridge_stats},
-    # }
 
     stats_compare = lasso_stats[["alpha", "zero_count", "mean_abs_weight"]].rename(
         columns={
@@ -128,14 +112,6 @@ def regularized_regression_results(X_train_s, X_test_s, y_train, y_test, alphas,
             reg.fit(X_train_s, y_train_arr)
 
             weights = reg.w
-            # weights, _ = fit_regularized_gd_correct(
-            #     X_train_s,
-            #     y_train_arr,
-            #     learning_rate=learning_rate,
-            #     alpha=float(alpha),
-            #     epochs=epochs,
-            #     penalty=penalty,
-            # )
             train_pred = reg.predict(X_train_s)
             test_pred = reg.predict(X_test_s)
             rows.append({

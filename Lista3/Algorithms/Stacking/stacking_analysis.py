@@ -1,79 +1,72 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from Lista3.Metrics.metrics import mse, mae
 
 
-def plot_train_test_metrics(y_train, y_train_pred, y_test, y_test_pred, model_name="Stacking Model"):
-    """
-    Rysuje wykres słupkowy porównujący Accuracy i F1 Score na zbiorze treningowym i testowym.
-    """
-    # Obliczanie metryk
-    metrics = {
-        'Accuracy': (
-            accuracy_score(y_train, y_train_pred),
-            accuracy_score(y_test, y_test_pred)
-        ),
-        'F1 Weighted': (
-            f1_score(y_train, y_train_pred, average='weighted'),
-            f1_score(y_test, y_test_pred, average='weighted')
-        )
-    }
 
-    labels = list(metrics.keys())
-    train_scores = [metrics[label][0] for label in labels]
-    test_scores = [metrics[label][1] for label in labels]
+def evaluate_and_plot_models(models_dict, X_train, y_train, X_test, y_test):
+    names = []
+    train_mses, test_mses = [], []
+    train_maes, test_maes = [], []
 
-    x = np.arange(len(labels))
+    print(f"{'Nazwa Modelu':<40} | {'Train MSE':<10} | {'Test MSE':<10} | {'Train MAE':<10} | {'Test MAE':<10}")
+    print("-" * 90)
+
+    for name, model in models_dict.items():
+        model.fit(X_train, y_train)
+        train_preds = model.predict(X_train)
+        test_preds = model.predict(X_test)
+
+        mse_train = mse(y_train, train_preds)
+        mse_test = mse(y_test, test_preds)
+        mae_train = mae(y_train, train_preds)
+        mae_test = mae(y_test, test_preds)
+
+        print(f"{name:<40} | {mse_train:<10.4f} | {mse_test:<10.4f} | {mae_train:<10.4f} | {mae_test:<10.4f}")
+
+        names.append(name)
+        train_mses.append(mse_train)
+        test_mses.append(mse_test)
+        train_maes.append(mae_train)
+        test_maes.append(mae_test)
+
+    x = np.arange(len(names))
     width = 0.35
 
-    fig, ax = plt.subplots(figsize=(8, 5))
-    rects1 = ax.bar(x - width / 2, train_scores, width, label='Train', color='steelblue', alpha=0.8)
-    rects2 = ax.bar(x + width / 2, test_scores, width, label='Test', color='coral', alpha=0.8)
+    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
 
-    ax.set_ylabel('Wartość metryki')
-    ax.set_title(f'Wyniki modelu: {model_name}')
-    ax.set_xticks(x)
-    ax.set_xticklabels(labels)
-    ax.set_ylim([0.0, 1.1])
-    ax.legend(loc='lower right')
-    ax.grid(True, axis='y', alpha=0.3)
+    rects1_mse = axes[0].bar(x - width / 2, train_mses, width, label='Train MSE', color='steelblue', alpha=0.85)
+    rects2_mse = axes[0].bar(x + width / 2, test_mses, width, label='Test MSE', color='coral', alpha=0.85)
+    axes[0].set_title('Porównanie modeli: Błąd MSE', fontsize=14)
+    axes[0].set_ylabel('Mean Squared Error')
+    axes[0].set_xticks(x)
+    axes[0].set_xticklabels(names, rotation=20, ha='right')
+    axes[0].legend()
+    axes[0].grid(axis='y', linestyle='--', alpha=0.5)
 
-    # Dodanie etykiet tekstowych na słupkach
-    for rects in [rects1, rects2]:
+    rects1_mae = axes[1].bar(x - width / 2, train_maes, width, label='Train MAE', color='steelblue', alpha=0.85)
+    rects2_mae = axes[1].bar(x + width / 2, test_maes, width, label='Test MAE', color='coral', alpha=0.85)
+    axes[1].set_title('Porównanie modeli: Błąd MAE', fontsize=14)
+    axes[1].set_ylabel('Mean Absolute Error')
+    axes[1].set_xticks(x)
+    axes[1].set_xticklabels(names, rotation=20, ha='right')
+    axes[1].legend()
+    axes[1].grid(axis='y', linestyle='--', alpha=0.5)
+
+    def autolabel(rects, ax):
         for rect in rects:
             height = rect.get_height()
-            ax.annotate(f'{height:.3f}',
+            offset = 3 if height >= 0 else -12
+            ax.annotate(f'{height:.2f}',
                         xy=(rect.get_x() + rect.get_width() / 2, height),
-                        xytext=(0, 3),  # 3 punkty przesunięcia w pionie
+                        xytext=(0, offset),
                         textcoords="offset points",
-                        ha='center', va='bottom')
+                        ha='center', va='bottom' if height >= 0 else 'top', fontsize=9)
 
-    fig.tight_layout()
-    plt.show()
-
-
-def plot_train_test_confusion_matrices(y_train, y_train_pred, y_test, y_test_pred, classes=None):
-    """
-    Rysuje macierze pomyłek dla zbioru treningowego i testowego obok siebie.
-    """
-    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-
-    # Macierz pomyłek - Zbiór Treningowy
-    cm_train = confusion_matrix(y_train, y_train_pred)
-    sns.heatmap(cm_train, annot=True, fmt='d', cmap='Blues', ax=axes[0],
-                xticklabels=classes, yticklabels=classes, cbar=False)
-    axes[0].set_title('Confusion Matrix - Zbiór Treningowy')
-    axes[0].set_ylabel('Prawdziwa etykieta')
-    axes[0].set_xlabel('Przewidziana etykieta')
-
-    # Macierz pomyłek - Zbiór Testowy
-    cm_test = confusion_matrix(y_test, y_test_pred)
-    sns.heatmap(cm_test, annot=True, fmt='d', cmap='Blues', ax=axes[1],
-                xticklabels=classes, yticklabels=classes, cbar=False)
-    axes[1].set_title('Confusion Matrix - Zbiór Testowy')
-    axes[1].set_ylabel('Prawdziwa etykieta')
-    axes[1].set_xlabel('Przewidziana etykieta')
+    autolabel(rects1_mse, axes[0])
+    autolabel(rects2_mse, axes[0])
+    autolabel(rects1_mae, axes[1])
+    autolabel(rects2_mae, axes[1])
 
     plt.tight_layout()
     plt.show()
