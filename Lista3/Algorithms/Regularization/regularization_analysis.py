@@ -5,8 +5,8 @@ import logging
 
 from pandas import DataFrame
 
-from Lista3.Algorithms.Regularization.regularized_gd import fit_regularized_gd_correct
-from Lista3.Metrics.metrics import mse, mae, predict_linear
+from Lista3.Algorithms.Regularization.regularized_gd import RegularizedGD
+from Lista3.Metrics.metrics import mse, mae
 
 logger = logging.getLogger(__name__)
 
@@ -29,23 +29,20 @@ def fit_penalty_path(X, y, alphas, penalty, learning_rate=0.01, epochs=2000):
         if alpha > 0.1:
             alpha_epochs = int(epochs * 1.5)
 
-        w, history = fit_regularized_gd_correct(
-            X,
-            y,
-            learning_rate=learning_rate,
-            alpha=alpha,
-            epochs=alpha_epochs,
-            penalty=penalty,
-            include_reg_in_loss=False,
-        )
+        reg = RegularizedGD(learning_rate=learning_rate, alpha=alpha, epochs=alpha_epochs, penalty=penalty)
+        reg.fit(X, y)
 
-        weights[i] = w
+        # w, history = fit_regularized_gd_correct(
+        #     X,
+        #     y,
+        #     learning_rate=learning_rate,
+        #     alpha=alpha,
+        #     epochs=alpha_epochs,
+        #     penalty=penalty,
+        #     include_reg_in_loss=False,
+        # )
 
-        if i % max(1, len(alphas) // 4) == 0:
-            final_loss = history[-1] if history else np.nan
-            logger.debug(f"  alpha={alpha:.6f}: final_mse={final_loss:.6f}, "
-                  f"mean_|w|={np.mean(np.abs(w[1:])):.6f}, "
-                  f"zero_count={np.sum(np.abs(w[1:]) <= 1e-4)}")
+        weights[i] = reg.w
 
     return np.array(alphas, dtype=float), weights
 
@@ -127,16 +124,20 @@ def regularized_regression_results(X_train_s, X_test_s, y_train, y_test, alphas,
 
     for penalty in ["l1", "l2"]:
         for alpha in alphas:
-            weights, _ = fit_regularized_gd_correct(
-                X_train_s,
-                y_train_arr,
-                learning_rate=learning_rate,
-                alpha=float(alpha),
-                epochs=epochs,
-                penalty=penalty,
-            )
-            train_pred = predict_linear(X_train_s, weights)
-            test_pred = predict_linear(X_test_s, weights)
+            reg = RegularizedGD(learning_rate=learning_rate, alpha=float(alpha), epochs=epochs, penalty=penalty)
+            reg.fit(X_train_s, y_train_arr)
+
+            weights = reg.w
+            # weights, _ = fit_regularized_gd_correct(
+            #     X_train_s,
+            #     y_train_arr,
+            #     learning_rate=learning_rate,
+            #     alpha=float(alpha),
+            #     epochs=epochs,
+            #     penalty=penalty,
+            # )
+            train_pred = reg.predict(X_train_s)
+            test_pred = reg.predict(X_test_s)
             rows.append({
                 "penalty": penalty,
                 "alpha": float(alpha),
